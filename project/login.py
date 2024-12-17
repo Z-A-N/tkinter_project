@@ -9,7 +9,10 @@ window = tk.Tk() # Membuat objek window dari kelas Tk (Variabel window mereferen
 window.title("Login Form")
 
 # Menentukan Icon jendela (file.icon)
-window.iconbitmap("")
+<<
+=======
+ window.iconbitmap("/assets/logo.ico")
+>>>>>>> 42314c0182edd5eb08a9e8d29367298136efb856
 
 # Membuat jendela full screen
 window.state("zoomed")
