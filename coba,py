@@ -1,0 +1,66 @@
+import tkinter as tk 
+from tkinter import ttk 
+from tkinter import PhotoImage
+
+# jendela utama
+root = tk.Tk()
+root.title("Aplikasi Pengelolaan Keuangan") #titel judul aplikasi
+root.geometry("600x400") #geometry untuk menentukan screen
+root.resizable(True, True) #resizable screen fleksibel
+# fungsi - fungsi
+mode_dark= False  #variabel mode gelap
+def toggle_mode():
+    global mode_dark
+    if mode_dark:
+        root.config(bg="white")
+        mode_dark = False
+    else:
+        root.config(bg="black")
+        mode_dark = True
+# fungsi menampilkan konten berdasarkan pilihan
+def change_content(page_name):
+    content_label.config(text=f"Anda Memilih {page_name}")
+    
+#fungsi untuk sidebar
+def toggle_sidebar():
+    global sidebar_open
+    if sidebar_open:
+        sidebar.config(width=0)
+        sidebar_open=False
+    else:
+        sidebar.config(width=200)
+        sidebar_open = True
+
+# Membuat sidebar di kiri
+sidebar_open = False
+sidebar = tk.Frame(root, width=200, bg="gray", height=400, relief="sunken")
+sidebar.pack(side="left", fill="y")
+
+# Tombol-tombol ke dalam sidebar
+home_button = tk.Button(sidebar, text="Home", width=20, command=lambda: change_content("Home"))
+home_button.pack(pady=10)
+
+settings_button = tk.Button(sidebar, text="Set", width=20, command=lambda: change_content("Settqw"))
+settings_button.pack(pady=10)
+
+
+# Tombel toggle mode dark/white
+toggle_button = tk.Button(root, text="Toggle Mode", command=toggle_mode)
+toggle_button.pack()
+
+# Tombol untuk membuka/tutup sidebar
+sidebar_toggle_button = tk.Button(root, text="☰", command=toggle_sidebar, font=("Arial", 18))
+sidebar_toggle_button.pack(side="top", anchor="w", padx=10, pady=10)
+
+# Membuat area utama untuk konten
+main_frame = tk.Frame(root, bg="white", height=400)
+main_frame.pack(side="right", fill="both", expand=True)
+
+
+# Label untuk menampilkan konten yang dipilih
+content_label = tk.Label(main_frame, text="Pilih halaman dari sidebar", font=("Arial", 14))
+content_label.pack(pady=50)
+
+root.mainloop()
+
+
