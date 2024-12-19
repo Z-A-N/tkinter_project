@@ -1,7 +1,9 @@
 import tkinter as tk
+from PIL import Image, ImageTk
 
 # ======= Setup Jendela Utama =======
 root = tk.Tk()
+root.iconbitmap("assets/img/logo.ico")  # Gunakan logo .ico
 root.title("Aplikasi Pengelolaan Keuangan")  # Judul aplikasi
 root.geometry("800x600")  # Ukuran jendela
 root.resizable(True, True)  # Membuat jendela bisa diubah ukurannya
@@ -12,23 +14,26 @@ def change_content(page_name):
     for widget in main_frame.winfo_children():
         widget.destroy()
 
+    # Buat label default terlebih dahulu
+    content_label = tk.Label(main_frame, font=("Arial", 14))
+
     # Menampilkan konten sesuai pilihan
     if page_name == "Home":
-        content_label = tk.Label(main_frame, text="Selamat datang di Aplikasi Pengelolaan Keuangan!", font=("Arial", 14))
-        content_label.pack(pady=50)
+        content_label.config(text="Selamat datang di Aplikasi Pengelolaan Keuangan!")
     elif page_name == "Transaksi":
-        content_label = tk.Label(main_frame, text="Halaman Transaksi", font=("Arial", 14))
-        content_label.pack(pady=50)
+        content_label.config(text="Halaman Transaksi")
     elif page_name == "Laporan":
-        content_label = tk.Label(main_frame, text="Laporan Keuangan", font=("Arial", 14))
-        content_label.pack(pady=50)
+        content_label.config(text="Laporan Keuangan")
     elif page_name == "Pengaturan":
-        content_label = tk.Label(main_frame, text="Halaman Pengaturan", font=("Arial", 14))
-        content_label.pack(pady=50)
+        content_label.config(text="Halaman Pengaturan")
     elif page_name == "Logout":
-        content_label = tk.Label(main_frame, text="Halaman Logout", font=("Arial", 14))
-        content_label.pack(pady=50)
-        
+        content_label.config(text="Anda telah Logout.")
+    else:
+        content_label.config(text=f"Anda Memilih {page_name}")  # Default jika tidak cocok
+    
+    # Tampilkan label
+    content_label.pack(pady=50)
+
 
 # ======= Navbar =======
 navbar = tk.Frame(root, bg="#F9F9F9", height=50)  # Navbar di atas
@@ -38,34 +43,71 @@ navbar_label = tk.Label(navbar, text="Aplikasi Pengelolaan Keuangan", fg="black"
 navbar_label.pack(pady=10)
 
 # ======= Sidebar =======
-sidebar_width = 200
-sidebar = tk.Frame(root, width=200, bg="#F9F9F9", height=550, relief="sunken")  # Sidebar di kiri
-sidebar.pack(side="left", fill="y")
+sidebar_width = 200  # Lebar sidebar
+sidebar = tk.Frame(root, width=sidebar_width, bg="#F9F9F9", height=550, relief="sunken")  # Sidebar di kiri
+sidebar.pack(side="left", fill="y", padx=5)
 
 # Tombol Sidebar dengan fungsionalitas untuk ganti konten
-home_button = tk.Button(sidebar, text="Home", width=20)
+home_image = Image.open("assets/img/bx-home.ico")  # Ganti dengan path ke gambar .ico Anda
+home_image = home_image.resize((20, 20))  # Menyesuaikan ukuran gambar jika perlu
+home_icon = ImageTk.PhotoImage(home_image)
+home_button = tk.Button(sidebar, image=home_icon, text="Home", compound="left", width=100, height=20 ,command=lambda: change_content("Home"))
 home_button.pack(pady=10, padx=10)
 
-transactions_button = tk.Button(sidebar, text="Transaksi", width=20)
+transactions_image = Image.open("assets/img/bx-transaksi.ico")  # Ganti dengan path ke gambar .ico Anda
+transactions_image = transactions_image.resize((20, 20))  # Menyesuaikan ukuran gambar jika perlu
+transactions_icon = ImageTk.PhotoImage(transactions_image)
+transactions_button = tk.Button(sidebar, image=transactions_icon, text="Transaksi", compound="left", width=100, height=20, command=lambda: change_content("Transaksi"))
 transactions_button.pack(pady=10)
 
-report_button = tk.Button(sidebar, text="Laporan", width=20)
+report_image = Image.open("assets/img/bx-laporan.ico")
+report_image = report_image.resize((20, 20))
+report_icon = ImageTk.PhotoImage(report_image)
+report_button = tk.Button(sidebar, image=report_icon, text="Laporan", compound="left", width=100, height=20, command=lambda: change_content("Laporan"))
 report_button.pack(pady=10)
 
-settings_button = tk.Button(sidebar, text="Pengaturan", width=20)
+settings_image = Image.open("assets/img/settings.ico")
+settings_image = settings_image.resize((20,20))
+settings_icon = ImageTk.PhotoImage(settings_image)
+settings_button = tk.Button(sidebar, image=settings_icon, text="Pengaturan", compound="left", width=100, height=20, command=lambda: change_content("Pengaturan"))
 settings_button.pack(pady=10)
 
-logout_button = tk.Button(sidebar, text="Logout", width=20)
+logout_image = Image.open("assets/img/logout.ico")
+logout_image = logout_image.resize((20,20))
+logout_icon = ImageTk.PhotoImage(logout_image)
+logout_button = tk.Button(sidebar, image=logout_icon, text="Logout", compound="left", width=100, height=20, command=lambda: change_content("Logout"))
 logout_button.pack(pady=10)
 
-# Menyambungkan tombol dengan fungsi untuk mengganti konten
-home_button.config(command=lambda: change_content("Home"))
-transactions_button.config(command=lambda: change_content("Transaksi"))
-report_button.config(command=lambda: change_content("Laporan"))
-settings_button.config(command=lambda: change_content("Pengaturan"))
-logout_button.config(command=lambda: change_content("Logout"))
+# Tombol untuk Toggle Sidebar (perbesar/kecilkan sidebar)
+def toggle_sidebar():
+    global sidebar_width
+    if sidebar_width == 200:
+        sidebar_width = 0
+        # Menyembunyikan tombol saat sidebar dikecilkan
+        home_button.pack_forget()
+        transactions_button.pack_forget()
+        report_button.pack_forget()
+        settings_button.pack_forget()
+        logout_button.pack_forget()
+    else:
+        sidebar_width = 200
+        # Menampilkan kembali tombol-tombol sidebar
+        home_button.pack(pady=10, padx=10)
+        transactions_button.pack(pady=10)
+        report_button.pack(pady=10)
+        settings_button.pack(pady=10)
+        logout_button.pack(pady=10)
+    sidebar.config(width=sidebar_width)
+    sidebar.pack_propagate(False)  # Mencegah resize sidebar
+    
+    
+# Menggunakan PIL untuk memuat ikon tombol toggle
+menu_image = Image.open("assets/img/bx-menu.ico")  # Ganti dengan path ke gambar .ico Anda
+menu_image = menu_image.resize((20, 20))  # Menyesuaikan ukuran gambar jika perlu
+menu_icon = ImageTk.PhotoImage(menu_image)
+toggle_button = tk.Button(navbar, image=menu_icon, command=toggle_sidebar)
+toggle_button.pack(side="left", padx=10)
 
-#Tombol toggle sidebar (perbesar/kecilkan)
 # ======= Main Content Area =======
 main_frame = tk.Frame(root, bg="white", height=550)  # Area utama untuk konten
 main_frame.pack(side="right", fill="both", expand=True)
