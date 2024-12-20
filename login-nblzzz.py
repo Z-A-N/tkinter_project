@@ -1,48 +1,55 @@
-# Import library Tkinter untuk membuat GUI dan library tambahan
-import tkinter as tk  # Digunakan untuk membuat elemen GUI
-from tkinter import messagebox  # Untuk menampilkan kotak pesan (message box)
-import os  # Digunakan untuk menjalankan perintah sistem
-import webbrowser  # Untuk membuka URL di browser
+import tkinter as tk
+from tkinter import messagebox
+import mysql.connector
+import bcrypt
+import os
+
+# Membuat koneksi ke database MySQL
+try:
+    conn = mysql.connector.connect(
+        host='localhost',       # Ubah sesuai dengan host database Anda
+        user='root',            # Ubah dengan username MySQL Anda
+        password='',            # Ubah dengan password MySQL Anda
+        database='keuangan_db'  # Pastikan nama database benar
+    )
+    if conn.is_connected():
+        cursor = conn.cursor()
+        print("Connected to MySQL Database")
+except mysql.connector.Error as e:  # Perbaikan: Menggunakan mysql.connector.Error
+    print(f"Error connecting to MySQL: {e}")
+    exit()
 
 # Fungsi untuk menangani aksi login
 def login():
-    """
-    Memvalidasi apakah email dan password telah diisi.
-    Jika kosong, menampilkan peringatan.
-    Jika terisi, menampilkan pesan berhasil login.
-    """
-    email = email_entry.get()  # Mengambil input email dari pengguna
-    password = password_entry.get()  # Mengambil input password dari pengguna
+    email = email_entry.get()  # Ambil input email
+    password = password_entry.get()  # Ambil input password
     
-    if email == "" or password == "":  # Mengecek jika email atau password kosong
-        messagebox.showwarning("Input Error", "Please enter both email and password.")  # Menampilkan peringatan
+    if email == "" or password == "":
+        messagebox.showwarning("Input Error", "Please enter both email and password.")
     else:
-        messagebox.showinfo("Login", "Logged in successfully!")  # Menampilkan pesan sukses
+        try:
+            cursor.execute("SELECT password FROM users WHERE email = %s", (email,))
+            result = cursor.fetchone()
+            if result:
+                stored_password_hash = result[0]  # Hash password yang disimpan di database
 
-# Fungsi untuk membuka link login Google
-def open_google():
-    """
-    Membuka halaman login Google di browser default.
-    """
-    webbrowser.open("https://accounts.google.com/signin")  # URL halaman login Google
+                # Verifikasi password dengan hash
+                if bcrypt.checkpw(password.encode('utf-8'), stored_password_hash.encode('utf-8')):
+                    messagebox.showinfo("Login", "Logged in successfully!")
+                    
+                    # Menutup jendela login dan membuka dashboard
+                    root.quit()  # Menutup jendela login
+                    os.system("python dashboard.py")  # Membuka halaman dashboard
+                else:
+                    messagebox.showerror("Login Error", "Invalid password.")
+            else:
+                messagebox.showerror("Login Error", "User not found.")
+        except mysql.connector.Error as e:  # Menggunakan mysql.connector.Error
+            messagebox.showerror("Error", f"Database error: {e}")
 
-# Fungsi untuk membuka link login Facebook
-def open_facebook():
-    """
-    Membuka halaman login Facebook di browser default.
-    """
-    webbrowser.open("https://www.facebook.com/login")  # URL halaman login Facebook
-
-# Fungsi untuk membuka halaman register (file Python lain)
+# Fungsi untuk membuka halaman registrasi
 def open_register():
-    """
-    Membuka file register-nblzzz.py untuk proses registrasi.
-    Jika terjadi error, menampilkan pesan kesalahan.
-    """
-    try:
-        os.system("python register-nblzzz.py")  # Menjalankan file Python lain
-    except Exception as e:
-        messagebox.showerror("Error", f"Could not open register page: {e}")  # Menampilkan error jika file tidak ditemukan
+    os.system("python register.py")  # Ganti dengan path yang sesuai untuk halaman registrasi
 
 # Membuat jendela utama aplikasi
 root = tk.Tk()  # Membuat window utama
@@ -62,13 +69,13 @@ welcome_label.grid(row=0, column=0, columnspan=2, pady=20, sticky="nsew")  # Tek
 
 # Tombol login menggunakan Google
 google_button = tk.Button(
-    login_frame, text="Google", font=("Arial", 12), bg="#00d4ff", fg="white", width=20, command=open_google
+    login_frame, text="Google", font=("Arial", 12), bg="#00d4ff", fg="white", width=20
 )
 google_button.grid(row=1, column=0, pady=10, padx=10, sticky="ew")  # Tombol di baris pertama, kolom kiri
 
 # Tombol login menggunakan Facebook
 facebook_button = tk.Button(
-    login_frame, text="Facebook", font=("Arial", 12), bg="#007bff", fg="white", width=20, command=open_facebook
+    login_frame, text="Facebook", font=("Arial", 12), bg="#007bff", fg="white", width=20
 )
 facebook_button.grid(row=1, column=1, pady=10, padx=10, sticky="ew")  # Tombol di baris pertama, kolom kanan
 
@@ -79,13 +86,13 @@ or_label.grid(row=2, column=0, columnspan=2, pady=10, sticky="nsew")  # Teks pem
 # Input untuk email
 email_label = tk.Label(login_frame, text="Email", font=("Arial", 12), bg="#f0f8ff")
 email_label.grid(row=3, column=0, padx=10, pady=10, sticky="w")  # Label email di kolom kiri
-email_entry = tk.Entry(login_frame, font=("Arial", 12))
+email_entry = tk.Entry(login_frame, font=("Arial", 12))  # Mendefinisikan email_entry
 email_entry.grid(row=3, column=1, padx=10, pady=10, sticky="ew")  # Input email di kolom kanan
 
 # Input untuk password
 password_label = tk.Label(login_frame, text="Password", font=("Arial", 12), bg="#f0f8ff")
 password_label.grid(row=4, column=0, padx=10, pady=10, sticky="w")  # Label password di kolom kiri
-password_entry = tk.Entry(login_frame, font=("Arial", 12), show="*")  # Input password disembunyikan dengan tanda "*"
+password_entry = tk.Entry(login_frame, font=("Arial", 12), show="*")  # Mendefinisikan password_entry
 password_entry.grid(row=4, column=1, padx=10, pady=10, sticky="ew")  # Input password di kolom kanan
 
 # Tombol untuk login

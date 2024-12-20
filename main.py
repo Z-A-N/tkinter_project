@@ -1,6 +1,6 @@
 import tkinter as tk
-import login  # Import file login.py
-import register  # Import file register.py
+import login 
+import register  
 
 def show_main_window():
     root = tk.Tk()

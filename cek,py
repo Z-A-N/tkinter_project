@@ -2,7 +2,6 @@ import tkinter as tk
 from PIL import Image, ImageTk
 from tkinter import messagebox
 import mysql.connector
-import os
 from mysql.connector import Error
 from tkcalendar import DateEntry
 
@@ -30,7 +29,6 @@ root.geometry("800x600")  # Ukuran jendela
 root.resizable(True, True)  # Membuat jendela bisa diubah ukurannya
 
 # ======= Fungsi untuk mengganti konten =======
-
 def change_content(page_name):
     # Hapus semua widget yang ada di content_frame (selain saldo)
     for widget in content_frame.winfo_children():
@@ -65,41 +63,35 @@ def hitung_saldo(cursor):
     saldo_keseluruhan = total_pemasukan - total_pengeluaran
 
     return total_pemasukan, total_pengeluaran, saldo_keseluruhan
-
-# Fungsi untuk mengambil username berdasarkan user_id dari database
 def get_username(user_id):
     try:
-        # Mengambil username dari database berdasarkan user_id
         cursor.execute("SELECT username FROM users WHERE id = %s", (user_id,))
         result = cursor.fetchone()
-        if result:
-            return result[0]
-        else:
-            return "User Not Found"
-    except mysql.connector.Error as e:
-        print(f"Error fetching username: {e}")
-        return "Error"
-
-# Fungsi untuk update profile (misalnya membuka form update)
+        return result[0] if result else None
+    except Error as e:
+        messagebox.showerror("Error", f"Could not fetch username: {e}")
+        return None
+    
 def update_profile():
-    messagebox.showinfo("Update Profile", "Open profile update form here.")
+    username = username_entry.get()  # Ambil data username dari entry
+    email = email_entry.get()  # Ambil data email dari entry
+
+    if username == "" or email == "":
+        messagebox.showwarning("Input Error", "Please fill out all fields.")
+    else:
+        # Update data di database
+        try:
+            cursor.execute("""
+                UPDATE users
+                SET username = %s, email = %s
+                WHERE id = %s
+            """, (username, email, user_id))  # Pastikan user_id sudah terisi
+            conn.commit()
+            messagebox.showinfo("Update Success", "Profile updated successfully!")
+        except Error as e:
+            messagebox.showerror("Error", f"Could not update profile: {e}")
 
 
-# Menambahkan tombol logout pada dashboard (misalnya)
-def logout():
-    response = messagebox.askyesno("Logout", "Are you sure you want to logout?")
-    if response:
-        root.destroy()  # Menutup aplikasi saat logout
-        os.system("python login-nblzzz.py")  # Kembali ke halaman login
-        
-def open_dashboard():
-    root.withdraw()  # Sembunyikan jendela login
-    # Buka dashboard di sini
-    dashboard_window = tk.Toplevel(root)
-    dashboard_window.title("Dashboard")
-    dashboard_window.geometry("1024x768")
-    # Setup tampilan dashboard di sini
-    dashboard_window.protocol("WM_DELETE_WINDOW", logout)  # Tambahkan logout ketika menutup
 
 
 # ======= Menampilkan Halaman Home =======
@@ -340,41 +332,26 @@ sidebar_width = 200  # Lebar sidebar
 sidebar = tk.Frame(root, width=sidebar_width, bg="#34495E", height=600, relief="sunken")  # Warna biru gelap
 sidebar.pack(side="left", fill="y")
 
-# Dashboard frame
-dashboard_frame = tk.Frame(root, bg="#f0f8ff")
-dashboard_frame.pack(side="right", fill="both", expand=True)
-
-# Simulasi user_id (biasanya ini akan diambil setelah login)
-user_id = 1  # Misalnya, setelah login, kita tahu user_id = 1
-
-# Menampilkan profile di sidebar
-def display_profile(user_id):
-    username = get_username(user_id)  # Mengambil username berdasarkan user_id
-    profile_frame = tk.Frame(sidebar, bg="#2C3E50", pady=20)  # Frame untuk profile dengan background gelap
-    profile_frame.pack(fill="x")  # Menempatkan frame secara horizontal (full width)
-
-    profile_label = tk.Label(
-        profile_frame,
-        text=f"👤 {username}",  # Menampilkan username
-        font=("Arial", 12, "bold"),
-        fg="white",
-        bg="#2C3E50"
-    )
-    profile_label.pack()  # Menampilkan label di dalam frame
+def display_profile():
+    # Assuming you have a frame where the profile form is displayed
+    profile_frame = tk.Frame(sidebar, bg="#2C3E50", pady=20)
+    profile_frame.pack(fill="x")
     
-    # Tombol update profile
-    update_profile_button = tk.Button(
-        profile_frame,
-        text="Update Profile",  # Teks pada tombol
-        font=("Arial", 14),
-        bg="#4CAF50",
-        fg="white",
-        command=update_profile  # Mengarah ke fungsi update profile
-    )
-    update_profile_button.pack(pady=20)  # Menempatkan tombol dengan sedikit padding
+    # Create Entry widgets for username and email
+    username_label = tk.Label(profile_frame, text="Username", font=("Arial", 12), fg="white", bg="#2C3E50")
+    username_label.pack()
+    username_entry = tk.Entry(profile_frame, font=("Arial", 12))
+    username_entry.pack(pady=5)
 
-# Panggil fungsi untuk menampilkan profile setelah login
-display_profile(user_id)
+    email_label = tk.Label(profile_frame, text="Email", font=("Arial", 12), fg="white", bg="#2C3E50")
+    email_label.pack()
+    email_entry = tk.Entry(profile_frame, font=("Arial", 12))
+    email_entry.pack(pady=5)
+
+    # Save button to update profile
+    update_profile_button = tk.Button(profile_frame, text="Update Profile", font=("Arial", 14), bg="#4CAF50", fg="white", command=lambda: update_profile(username_entry, email_entry))
+    update_profile_button.pack(pady=20)
+
 
 
 divider = tk.Frame(sidebar, bg="white", height=2)  # Pembatas
@@ -432,12 +409,13 @@ settings_icon = ImageTk.PhotoImage(settings_image)
 create_sidebar_button("Pengaturan", settings_icon, lambda: change_content("Pengaturan"))
 
 # Memuat gambar ikon logout
-logout_image = Image.open("assets/img/logout.ico")  # Pastikan path file benar
-logout_image = logout_image.resize((20, 20))  # Resize gambar sesuai ukuran yang diinginkan
-logout_icon = ImageTk.PhotoImage(logout_image)  # Mengonversi gambar menjadi format yang bisa digunakan Tkinter
-create_sidebar_button("Logout", logout_icon, logout)
+logout_image = Image.open("assets/img/logout.ico")
+logout_image = logout_image.resize((20, 20))  
+logout_icon = ImageTk.PhotoImage(logout_image)  
+create_sidebar_button("Logout", logout_icon, lambda: change_content("Logout"))
+
 # ======= Main Content Area =======
-main_frame = tk.Frame(root, bg="white", height=600)  # Area utama untuk konten
+main_frame = tk.Frame(root, bg="white", height=600)  
 main_frame.pack(side="right", fill="both", expand=True)
 
 # Menampilkan saldo di atas konten utama
