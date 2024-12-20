@@ -69,7 +69,7 @@ def register_via_social(platform):
 # Fungsi untuk membuka halaman login
 def open_login():
     try:
-        os.system("python login-nblzzz.py")
+        os.system("python login-nblzzz.py")  # Menjalankan file login lain dengan command sistem
     except Exception as e:
         messagebox.showerror("Error", f"Could not open login page: {e}")
 

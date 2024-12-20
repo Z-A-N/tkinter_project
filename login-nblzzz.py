@@ -49,19 +49,27 @@ def login():
 
 # Fungsi untuk membuka halaman registrasi
 def open_register():
-    os.system("python register.py")  # Ganti dengan path yang sesuai untuk halaman registrasi
+    """
+    Membuka file register-nblzzz.py untuk proses registrasi.
+    Jika terjadi error, menampilkan pesan kesalahan.
+    """
+    try:
+        os.system("python register-nblzzz.py")  # Menjalankan file Python lain
+    except Exception as e:
+        messagebox.showerror("Error", f"Could not open register page: {e}")  # Menampilkan error jika file tidak ditemukan
 
 # Membuat jendela utama aplikasi
 root = tk.Tk()  # Membuat window utama
 root.title("Login Page")  # Memberi judul pada window
-root.geometry("600x400")  # Mengatur ukuran window (lebar x tinggi)
+root.geometry("1024x768")  # Mengatur ukuran window (lebar x tinggi)
 
 # Mengatur warna latar belakang window
 root.config(bg="#a8e6cf")  # Warna latar hijau muda
 
 # Membuat frame untuk menampung elemen login
 login_frame = tk.Frame(root, bg="#f0f8ff", padx=20, pady=20)  # Frame dengan padding
-login_frame.pack(expand=True, fill="both", padx=20, pady=20)  # Frame dipusatkan dan memenuhi ruang
+login_frame.place(relx=0.5, rely=0.5, anchor="center")  # Posisi frame di tengah
+
 
 # Menambahkan teks sambutan
 welcome_label = tk.Label(login_frame, text="Welcome Back", font=("Arial", 24), bg="#f0f8ff")
